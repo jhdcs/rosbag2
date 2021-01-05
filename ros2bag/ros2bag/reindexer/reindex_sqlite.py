@@ -119,7 +119,7 @@ def reindex(
             print_error('Reindex needs a bag directory. Was given path "{}"'.format(uri)))
 
     # Get the relative paths
-    if compression_fmt == 'zstd':
+    if (compression_fmt == 'zstd') and (compression_mode == 'file'):
         rel_file_paths = sorted(f for f in uri_dir.iterdir() if f.suffix == '.zstd')
     else:
         rel_file_paths = sorted(f for f in uri_dir.iterdir() if f.suffix == '.db3')
