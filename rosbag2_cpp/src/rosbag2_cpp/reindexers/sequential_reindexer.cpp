@@ -46,9 +46,7 @@ namespace reindexers
 namespace details
 {
 std::vector<rcpputils::fs::path> resolve_relative_paths(
-  const rcpputils::fs::path & base_folder,
-  std::vector<rcpputils::fs::path> relative_files,
-  const int version = 4)
+  const rcpputils::fs::path & base_folder, std::vector<rcpputils::fs::path> relative_files, const int version = 4)
 {
   auto base_path = rcpputils::fs::path(base_folder);  // Preserve folder
   if (version < 4) {
@@ -126,8 +124,7 @@ bool SequentialReindexer::comp_rel_file(
   return first_db_num < second_db_num;
 }
 
-std::vector<rcpputils::fs::path> SequentialReindexer::get_database_files(
-  const rcpputils::fs::path & base_folder)
+std::vector<rcpputils::fs::path> SequentialReindexer::get_database_files(const rcpputils::fs::path & base_folder)
 {
   // Look in the uri directory to see what database files are there
   std::vector<rcpputils::fs::path> output;
@@ -143,7 +140,7 @@ std::vector<rcpputils::fs::path> SequentialReindexer::get_database_files(
     // If an error occurs, we want to abort
     if (hFind == INVALID_HANDLE_VALUE) {
       DWORD dwError = GetLastError();
-      std::error_code ec(dwError, std::system_category());
+      std::error_code ec (dwError, std::system_category());
       throw(std::system_error(ec));
     }
 
@@ -176,8 +173,7 @@ std::vector<rcpputils::fs::path> SequentialReindexer::get_database_files(
     }
     dirent * dp;
     while ((dp = readdir(dirp)) != NULL) {
-      auto non_const_folder = rcpputils::fs::path(base_folder);
-      auto temp_path = non_const_folder /= rcpputils::fs::path(dp->d_name);
+      auto temp_path = rcpputils::fs::path(dp->d_name);
 
       // We are ONLY interested in database files
       if (temp_path.extension().string() != ".db3") {
