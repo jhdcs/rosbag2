@@ -31,7 +31,7 @@ class ReindexVerb(VerbExtension):
         parser.add_argument(
             'bag_file', type=check_path_exists, help='Bag file to reindex')
         parser.add_argument(
-            '-s', '--storage', default='sqlite3',
+            '-s', '--storage-id', default='sqlite3',
             help="storage identifier to be used, defaults to 'sqlite3'")
         parser.add_argument(
             '-f', '--serialization-format', default='',

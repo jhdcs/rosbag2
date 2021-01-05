@@ -60,11 +60,18 @@ def get_metadata_from_connection(db_con: sqlite3.Connection) -> DBMetadata:
 
     rows = c.fetchall()
 
+    rows = c.fetchall()
+    # "SELECT name, type, serialization_format, COUNT(messages.id), MIN(messages.timestamp), "
+    # "MAX(messages.timestamp), offered_qos_profiles "
+    # "FROM messages JOIN topics on topics.id = messages.topic_id "
+    # "GROUP BY topics.name;");
+
     # Set up initial values
     topics: List[TopicInfo] = []
     min_time: int = sys.maxsize
     max_time: int = 0
 
+    num_rows = 0
     # Aggregate metadata
     for row in rows:
         topics.append(TopicInfo(
@@ -77,6 +84,8 @@ def get_metadata_from_connection(db_con: sqlite3.Connection) -> DBMetadata:
             min_time = row[4]
         if row[5] > max_time:
             max_time = row[5]
+
+    print('num_rows: {}'.format(num_rows))
 
     return {'topic_metadata': topics, 'min_time': min_time, 'max_time': max_time}
 
@@ -140,6 +149,8 @@ def reindex(
         if db_metadata['max_time'] > rolling_max_time:
             rolling_max_time = db_metadata['max_time']
 
+    print('Min time: {}'.format(rolling_min_time))
+    print('Max time: {}'.format(rolling_max_time))
     metadata.starting_time = rolling_min_time
     metadata.duration = rolling_max_time - rolling_min_time
     metadata.calculate_message_count()
