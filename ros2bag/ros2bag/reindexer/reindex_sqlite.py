@@ -119,7 +119,10 @@ def reindex(
             print_error('Reindex needs a bag directory. Was given path "{}"'.format(uri)))
 
     # Get the relative paths
-    rel_file_paths = sorted(f for f in uri_dir.iterdir() if f.suffix == '.db3')
+    if compression_fmt == 'zstd':
+        rel_file_paths = sorted(f for f in uri_dir.iterdir() if f.suffix == '.zstd')
+    else:
+        rel_file_paths = sorted(f for f in uri_dir.iterdir() if f.suffix == '.db3')
 
     # Start recording metadata
     metadata = bag_metadata.MetadataWriter()
