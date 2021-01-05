@@ -159,8 +159,7 @@ std::vector<rcpputils::fs::path> SequentialReindexer::get_database_files(const r
         }
         output.emplace_back(temp_path);
       }
-    } while (FindNextFile(hFind, &ffd) != 0);
-
+    }
     FindClose(hFind);
   }
   #else
