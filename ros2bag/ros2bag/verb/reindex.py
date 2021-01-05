@@ -22,7 +22,7 @@
 
 import os
 
-from ros2bag.api import check_path_exists
+from ros2bag.api import check_path_exists, print_error
 from ros2bag.verb import VerbExtension
 
 
