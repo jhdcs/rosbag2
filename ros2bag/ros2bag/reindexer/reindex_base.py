@@ -20,7 +20,7 @@
 #
 # This notice must appear in all copies of this file and its derivatives.
 
-from typing import Literal, Optional
+from typing import Optional
 
 from ros2bag.api import print_error
 
