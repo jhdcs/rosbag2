@@ -27,6 +27,8 @@ from typing import List, Literal, Optional, TypedDict
 
 from ros2bag.api import print_error
 
+from . import bag_metadata
+
 
 class TopicInfo(TypedDict):
     topic_name: str
