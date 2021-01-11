@@ -120,10 +120,12 @@ void Rosbag2Transport::play(
 }
 
 void Rosbag2Transport::reindex(
-  const rosbag2_storage::StorageOptions & storage_options)
+  const rosbag2_storage::StorageOptions & storage_options,
+  const std::string & compression_format,
+  const std::string & compression_mode)
 {
   try {
-    reindexer_->reindex(storage_options);
+    reindexer_->reindex(storage_options, compression_format, compression_mode);
   } catch (std::runtime_error & e) {
     ROSBAG2_TRANSPORT_LOG_ERROR("Failed to reindex: %s", e.what());
   }

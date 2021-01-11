@@ -14,7 +14,7 @@
 
 import os
 
-from ros2bag.api import check_path_exists
+from ros2bag.api import check_path_exists, print_error
 from ros2bag.verb import VerbExtension
 
 
@@ -35,6 +35,16 @@ class ReindexVerb(VerbExtension):
             '--compression-format', type=str, default='', choices=['zstd'],
             help='Specify the compression format/algorithm. Default is none.'
         )
+        parser.add_argument(
+            '-m', '--compression-mode', type=str, default='none',
+            choices=['none', 'file', 'message'],
+            help="Specify whether bag is compressed by file or by message. Default is 'none'"
+        )
+        parser.add_argument(
+            '-t', '--test-output-dir', type=str, default=None,
+            help='Write output metadata file to a specified directory, instead of the bag'
+                 'file directory. Useful for testing'
+        )
         self._subparser = parser
 
     def main(self, *, args):  # noqa: D102
@@ -46,12 +56,18 @@ class ReindexVerb(VerbExtension):
         #               extension. Therefore, do not import rosbag2_transport at the module
         #               level but on demand, right before first use.
         from rosbag2_transport import rosbag2_transport_py
+        
+        if args.compression_format and args.compression_mode == 'none':
+            return print_error('Invalid choice: Cannot specify compression format '
+                               'without a compression mode.')
 
         rosbag2_transport_py.reindex(
             uri=uri,
             storage_id=args.storage,
             serialization_format=args.serialization_format,
-            compression_format=args.compression_format
+            compression_format=args.compression_format,
+            compression_mode=args.compression_mode
+            # _test_output_dir=args.test_output_dir
         )
 
         if os.path.isdir(uri) and not os.listdir(uri):

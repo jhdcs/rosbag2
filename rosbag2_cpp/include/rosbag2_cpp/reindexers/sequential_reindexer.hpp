@@ -71,7 +71,9 @@ public:
   virtual ~SequentialReindexer();
 
 
-  void reindex(const rosbag2_storage::StorageOptions & storage_options) override;
+  void reindex(const rosbag2_storage::StorageOptions & storage_options,
+    const std::string & compression_format,
+    const std::string & compression_mode) override;
 
   void fill_topics_metadata();
 

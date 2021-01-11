@@ -45,7 +45,9 @@ class ROSBAG2_CPP_PUBLIC BaseReindexerInterface
 public:
   virtual ~BaseReindexerInterface() {}
 
-  virtual void reindex(const rosbag2_storage::StorageOptions & storage_options) = 0;
+  virtual void reindex(const rosbag2_storage::StorageOptions & storage_options,
+    const std::string & compression_format,
+    const std::string & compression_mode) = 0;
 };
 
 }  // namespace reindexer_interfaces

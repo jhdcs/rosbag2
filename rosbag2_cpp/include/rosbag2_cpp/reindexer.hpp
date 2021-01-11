@@ -65,7 +65,9 @@ public:
    *
    * \throws runtime_error if the Reader is not open.
    */
-  void reindex(const rosbag2_storage::StorageOptions & storage_options);
+  void reindex(const rosbag2_storage::StorageOptions & storage_options,
+    const std::string & compression_format,
+    const std::string & compression_mode);
 
 private:
   std::unique_ptr<reindexer_interfaces::BaseReindexerInterface> reindexer_impl;

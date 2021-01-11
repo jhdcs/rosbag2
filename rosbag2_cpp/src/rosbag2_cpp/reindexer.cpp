@@ -40,9 +40,11 @@ Reindexer::Reindexer(std::unique_ptr<reindexer_interfaces::BaseReindexerInterfac
 
 Reindexer::~Reindexer() {}
 
-void Reindexer::reindex(const rosbag2_storage::StorageOptions & storage_options)
+void Reindexer::reindex(const rosbag2_storage::StorageOptions & storage_options,
+  const std::string & compression_format,
+  const std::string & compression_mode)
 {
-  reindexer_impl->reindex(storage_options);
+  reindexer_impl->reindex(storage_options, compression_format, compression_mode);
 }
 
 

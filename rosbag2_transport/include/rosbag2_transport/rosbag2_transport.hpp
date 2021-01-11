@@ -94,12 +94,14 @@ public:
   /**
    * Reconstruct the metadata yaml file from the stored data in the bag.
    *
-   * \param uri path to the bag
    * \param storage_options Options regarding the storage (e.g. bag file name)
-   * \param record_options Options regarding how the file was recorded (e.g. compression format)
+   * \param compression_format If the bag was compressed, what format was used
+   * \param compression_mode If the bag was compressed, what mode was used
    */
   ROSBAG2_TRANSPORT_PUBLIC
-  void reindex(const rosbag2_storage::StorageOptions & storage_options);
+  void reindex(const rosbag2_storage::StorageOptions & storage_options,
+                const std::string & compression_format,
+                const std::string & compression_mode);
 
 private:
   std::shared_ptr<Rosbag2Node> setup_node(

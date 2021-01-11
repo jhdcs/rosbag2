@@ -302,7 +302,9 @@ void SequentialReindexer::aggregate_metadata(
   }
 }
 
-void SequentialReindexer::reindex(const rosbag2_storage::StorageOptions & storage_options)
+void SequentialReindexer::reindex(const rosbag2_storage::StorageOptions & storage_options,
+  const std::string & compression_format,
+  const std::string & compression_mode)
 {
   ROSBAG2_CPP_LOG_INFO("Beginning Reindex Operation.");
 
@@ -313,6 +315,25 @@ void SequentialReindexer::reindex(const rosbag2_storage::StorageOptions & storag
   if (files.empty()) {
     ROSBAG2_CPP_LOG_ERROR("No database files found for reindexing. Abort");
     return;
+  }
+
+  // If the user has indicated that these files are compressed then we may need to do some extra work
+  if (!compression_format.empty()) {
+    // Make sure that we support the compression format
+    std::string compression_format_upper = rosbag2_cpp::to_upper(compression_format);
+    if (compression_format != "zstd") {
+      ROSBAG2_CPP_LOG_ERROR("Compression formats apart from `zstd` are not supported at this time. Abort");
+      return;
+    }
+
+    // Make sure the compression mode makes sense
+    if (compression_mode.empty() || compression_mode == "none") {
+      ROSBAG2_CPP_LOG_ERROR("If there is a compression format specified, the compression mode must be 'file' or 'message'");
+      return;
+    } else if (compression_mode == "file") {
+      // File is the only compression mode we really need to worry about. The reindexer doesn't read messages
+
+    }
   }
 
   // Create initial metadata
