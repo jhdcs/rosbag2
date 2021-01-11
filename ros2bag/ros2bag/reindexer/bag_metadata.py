@@ -21,7 +21,7 @@
 # This notice must appear in all copies of this file and its derivatives.
 
 import pathlib
-from typing import Dict, List, TypedDict, Union
+from typing import Dict, List, Literal, TypedDict, Union
 
 from ros2bag.api import print_error
 import yaml
@@ -72,8 +72,8 @@ class MetadataWriter:
         self._starting_time: int = 0
         self._message_count: int = 0
         self._topics: List[TopicMetadata] = []
-        self._compression_format: str = ''
-        self._compression_mode: str = ''
+        self._compression_format: Literal['', 'zstd'] = ''
+        self._compression_mode: Literal['', 'file', 'message'] = ''
 
     @property
     def version(self) -> int:
@@ -172,11 +172,14 @@ class MetadataWriter:
         self._topics.append(new_topic)
 
     @property
-    def compression_format(self) -> str:
+    def compression_format(self) -> Literal['', 'zstd']:
         return self._compression_format
 
     @compression_format.setter
-    def compression_format(self, f: str):
+    def compression_format(self, f: Literal['', 'zstd']):
+        if not ((f == '') or (f == 'zstd')):
+            raise ValueError(print_error("Compression format must either be '' or 'zstd', "
+                                         "Got '{}'".format(f)))
         self._compression_format = f
 
     @property
@@ -184,8 +187,15 @@ class MetadataWriter:
         return self._compression_mode
 
     @compression_mode.setter
-    def compression_mode(self, m: str):
-        self._compression_mode = m
+    def compression_mode(self, m: Literal['', 'none', 'file', 'message']):
+        if not ((m == '') or (m == 'none') or (m == 'file') or (m == 'message')):
+            raise ValueError(print_error("Compression format must either be 'none', 'file or 'message', "
+                                         "Got '{}'".format(m)))
+        if m == 'none':
+            translated = ''
+        else:
+            translated = m
+        self._compression_mode = translated
 
     def _as_yaml_dict(self) -> Dict:
         # Sort the relative file paths really quick
