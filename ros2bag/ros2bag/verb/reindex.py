@@ -32,14 +32,14 @@ class ReindexVerb(VerbExtension):
         parser.add_argument(
             'bag_file', type=check_path_exists, help='Bag file to reindex')
         parser.add_argument(
-            '-s', '--storage', default='sqlite3',
+            '-s', '--storage-id', default='sqlite3',
             help="storage identifier to be used, defaults to 'sqlite3'")
         parser.add_argument(
             '-c', '--compression-format', type=str, default='', choices=['zstd'],
             help='Specify the compression format/algorithm. Default is none.'
         )
         parser.add_argument(
-            'm', '--compression-mode', type=str, default='none',
+            '-m', '--compression-mode', type=str, default='none',
             choices=['none', 'file', 'message'],
             help="Specify whether bag is compressed by file or by message. Default is 'none'"
         )
@@ -52,14 +52,14 @@ class ReindexVerb(VerbExtension):
 
     def main(self, *, args):  # noqa: D102
 
-        if args.compression_fmt and args.compression_mode == 'none':
+        if args.compression_format and args.compression_mode == 'none':
             return print_error('Invalid choice: Cannot specify compression format '
                                'without a compression mode.')
 
         reindex_base.reindex(
             uri=args.bag_file,
             storage_id=args.storage_id,
-            compression_fmt=args.compression_fmt,
+            compression_fmt=args.compression_format,
             compression_mode=args.compression_mode,
-            _test_output_dir=args._test_output_dir
+            _test_output_dir=args.test_output_dir
         )
