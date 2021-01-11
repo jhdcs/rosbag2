@@ -52,7 +52,7 @@ def get_metadata_from_connection(db_con: sqlite3.Connection) -> DBMetadata:
                        'GROUP BY topics.name;')
 
     rows = c.fetchall()
-    
+
     # Set up initial values
     topics: List[TopicInfo] = []
     min_time: int = sys.maxsize
