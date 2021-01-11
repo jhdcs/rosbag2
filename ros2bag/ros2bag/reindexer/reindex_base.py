@@ -30,8 +30,9 @@ from . import reindex_sqlite
 def reindex(uri: str,
             storage_id: str,
             serialization_fmt: str,
-            compression_fmt: str) -> Optional[str]:
+            compression_fmt: str,
+            compression_mode: str) -> Optional[str]:
     if storage_id == 'sqlite3':
-        reindex_sqlite.reindex(uri, serialization_fmt, compression_fmt)
+        reindex_sqlite.reindex(uri, serialization_fmt, compression_fmt, compression_mode)
     else:
         return print_error('Reindex for storage type {} not implemented'.format(storage_id))
