@@ -31,8 +31,9 @@ def reindex(uri: str,
             storage_id: str,
             serialization_fmt: str,
             compression_fmt: str,
-            compression_mode: str) -> Optional[str]:
+            compression_mode: str,
+            _test_output_dir: Optional[str]) -> Optional[str]:
     if storage_id == 'sqlite3':
-        reindex_sqlite.reindex(uri, serialization_fmt, compression_fmt, compression_mode)
+        reindex_sqlite.reindex(uri, compression_fmt, compression_mode, _test_output_dir)
     else:
         return print_error('Reindex for storage type {} not implemented'.format(storage_id))
