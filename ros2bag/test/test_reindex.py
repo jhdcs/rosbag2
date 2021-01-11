@@ -192,10 +192,15 @@ def compare_metadata_files(target_file: Path, test_file: Path):
 
     check_version(target_base_node, test_base_node)
     check_storage_identifier(target_base_node, test_base_node)
-    check_relative_filepaths(target_base_node, test_base_node)
+
+    # INCONSISTENT BETWEEN COMPRESSED / NON COMPRESSED BAGS
+    # Disabling for now
+    # check_relative_filepaths(target_base_node, test_base_node)
+
     # MAY NOT BE ABLE TO GUARANTEE THIS #
     # check_duration(target_base_node, test_base_node)
     # check_starting_time(target_base_node, test_base_node)
+
     check_message_count(target_base_node, test_base_node)
     check_topics(target_base_node, test_base_node)
     check_compression_fmt(target_base_node, test_base_node)

@@ -20,7 +20,7 @@
 #
 # This notice must appear in all copies of this file and its derivatives.
 
-from typing import Optional
+from typing import Literal, Optional
 
 from ros2bag.api import print_error
 
@@ -29,8 +29,8 @@ from . import reindex_sqlite
 
 def reindex(uri: str,
             storage_id: str,
-            compression_fmt: str,
-            compression_mode: str,
+            compression_fmt: Literal['', 'zstd'],
+            compression_mode: Literal['', 'none', 'file', 'message'],
             _test_output_dir: Optional[str]) -> Optional[str]:
     if storage_id == 'sqlite3':
         reindex_sqlite.reindex(uri, compression_fmt, compression_mode, _test_output_dir)

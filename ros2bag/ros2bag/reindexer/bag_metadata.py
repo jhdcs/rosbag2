@@ -73,7 +73,7 @@ class MetadataWriter:
         self._message_count: int = 0
         self._topics: List[TopicMetadata] = []
         self._compression_format: Literal['', 'zstd'] = ''
-        self._compression_mode: Literal['', 'file', 'message'] = ''
+        self._compression_mode: Literal['', 'FILE', 'MESSAGE'] = ''
 
     @property
     def version(self) -> int:
@@ -206,7 +206,7 @@ class MetadataWriter:
         if m == 'none':
             translated = ''
         else:
-            translated = m
+            translated = m.upper()
         self._compression_mode = translated
 
     def _as_yaml_dict(self) -> Dict:

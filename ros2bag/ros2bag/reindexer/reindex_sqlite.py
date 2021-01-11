@@ -44,10 +44,7 @@ class DBMetadata(TypedDict):
     max_time: int
 
 
-def get_metadata(db_file: pathlib.Path) -> DBMetadata:
-    db_con = sqlite3.connect(db_file)
-    # c = db_con.cursor()
-
+def get_metadata_from_connection(db_con: sqlite3.Connection) -> DBMetadata:
     # Query the metadata
     c = db_con.execute('SELECT name, type, serialization_format, COUNT(messages.id), '
                        'MIN(messages.timestamp), MAX(messages.timestamp), offered_qos_profiles '
@@ -57,7 +54,6 @@ def get_metadata(db_file: pathlib.Path) -> DBMetadata:
     rows = c.fetchall()
 
     # Set up initial values
-    # topics: List[Dict[str, Union[str, int]]] = []
     topics: List[TopicInfo] = []
     min_time: int = sys.maxsize
     max_time: int = 0
@@ -78,6 +74,54 @@ def get_metadata(db_file: pathlib.Path) -> DBMetadata:
     return {'topic_metadata': topics, 'min_time': min_time, 'max_time': max_time}
 
 
+def get_metadata_file_compressed(db_file: pathlib.Path) -> DBMetadata:
+    try:
+        import zstandard as zstd
+    except ImportError:
+        raise ImportError(print_error(
+                            'The "zstandard" library is required to reindex compressed bags. '
+                            'Install using "pip3 install zstandard" and try again.'))
+
+    # Decompress database
+    compressed_db_bytes = db_file.read_bytes()
+    dctx = zstd.ZstdDecompressor()
+    decompressed_db = dctx.decompress(compressed_db_bytes)
+
+    # Temporarily save decompressed database to disk
+    decompressed_path = pathlib.Path(db_file.parent) / db_file.stem
+    decompressed_path.write_bytes(decompressed_db)
+    with sqlite3.connect(decompressed_path) as db_con:
+        return_val = get_metadata_from_connection(db_con)
+
+    # Delete temporary database, shm, and wal files
+    decompressed_path.unlink()
+    decompressed_shm = pathlib.Path(decompressed_path.as_posix() + '-shm')
+    decompressed_shm.unlink(True)
+    decompressed_wal = pathlib.Path(decompressed_path.as_posix() + '-wal')
+    decompressed_wal.unlink(True)
+
+    return return_val
+
+
+def get_metadata(db_file: pathlib.Path,
+                 compression_fmt: Literal['', 'zstd'],
+                 compression_mode: Literal['', 'none', 'file', 'message']) -> DBMetadata:
+    # Handle compression
+    if compression_fmt != '':
+        if compression_mode == 'message':
+            raise ValueError(print_error(
+                                'Message-compressed bags currently unsupported by reindex'))
+        elif compression_mode != 'file':
+            raise ValueError(print_error(
+                                'Invalid compression mode for compressed file. '
+                                'Expected "file" or "message", got {}'.format(compression_mode)))
+        else:
+            return get_metadata_file_compressed(db_file)
+    else:
+        with sqlite3.connect(db_file) as db_con:
+            return get_metadata_from_connection(db_con)
+
+
 def reindex(
         uri: str,
         compression_fmt: Literal['', 'zstd'],
@@ -90,7 +134,10 @@ def reindex(
             print_error('Reindex needs a bag directory. Was given path "{}"'.format(uri)))
 
     # Get the relative paths
-    rel_file_paths = sorted(f for f in uri_dir.iterdir() if f.suffix == '.db3')
+    if compression_fmt == 'zstd':
+        rel_file_paths = sorted(f for f in uri_dir.iterdir() if f.suffix == '.zstd')
+    else:
+        rel_file_paths = sorted(f for f in uri_dir.iterdir() if f.suffix == '.db3')
 
     # Start recording metadata
     metadata = bag_metadata.MetadataWriter()
@@ -104,7 +151,7 @@ def reindex(
     rolling_min_time = sys.maxsize
     rolling_max_time = 0
     for db_file in rel_file_paths:
-        db_metadata = get_metadata(db_file)
+        db_metadata = get_metadata(db_file, compression_fmt, compression_mode)
         for topic in db_metadata['topic_metadata']:
             metadata.add_topic(**topic)
 
