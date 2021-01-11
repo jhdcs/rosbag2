@@ -23,11 +23,12 @@
 import pathlib
 import sqlite3
 import sys
-from typing import Dict, List, Optional, TypedDict, Union 
+from typing import List, Optional, TypedDict
+
+import bag_metadata
 
 from ros2bag.api import print_error
 
-import bag_metadata
 
 class TopicInfo(TypedDict):
     topic_name: str
@@ -36,10 +37,12 @@ class TopicInfo(TypedDict):
     topic_count: str
     topic_qos: str
 
+
 class DBMetadata(TypedDict):
     topic_metadata: List[TopicInfo]
     min_time: int
     max_time: int
+
 
 def get_metadata(db_file: pathlib.Path) -> DBMetadata:
     db_con = sqlite3.connect(db_file)
@@ -60,9 +63,9 @@ def get_metadata(db_file: pathlib.Path) -> DBMetadata:
     # Aggregate metadata
     for row in c:
         topics.append(TopicInfo(
-            topic_name= row[0],
+            topic_name=row[0],
             topic_type=row[1],
-            topic_ser_fmt= row[2],
+            topic_ser_fmt=row[2],
             topic_count=row[3],
             topic_qos=row[6]))
         if row[4] < min_time:
@@ -73,7 +76,11 @@ def get_metadata(db_file: pathlib.Path) -> DBMetadata:
     return {'topic_metadata': topics, 'min_time': min_time, 'max_time': max_time}
 
 
-def reindex(uri: str, compression_fmt: str, compression_mode: str, _test_output_dir: Optional[str]) -> None:
+def reindex(
+        uri: str,
+        compression_fmt: str,
+        compression_mode: str,
+        _test_output_dir: Optional[str]) -> None:
     """Reconstruct a metadata.yaml file for an sqlite3-based rosbag."""
     uri_dir = pathlib.Path(uri)
     if not uri_dir.is_dir():
@@ -98,12 +105,12 @@ def reindex(uri: str, compression_fmt: str, compression_mode: str, _test_output_
         db_metadata = get_metadata(db_file)
         for topic in db_metadata['topic_metadata']:
             metadata.add_topic(**topic)
-        
+
         if rolling_min_time > db_metadata['min_time']:
             rolling_min_time = db_metadata['min_time']
         if rolling_max_time < db_metadata['max_time']:
             rolling_max_time = db_metadata['max_time']
-    
+
     metadata.starting_time = rolling_min_time
     metadata.duration = rolling_max_time - rolling_min_time
 
@@ -111,7 +118,8 @@ def reindex(uri: str, compression_fmt: str, compression_mode: str, _test_output_
         out_dir = pathlib.Path(_test_output_dir)
         if not out_dir.is_dir():
             raise ValueError(
-                print_error('Reindex test output needs a directory. Was given path "{}"'.format(uri)))
+                print_error('Reindex test output needs a directory. '
+                            'Was given path "{}"'.format(uri)))
     else:
         out_dir = uri_dir
 

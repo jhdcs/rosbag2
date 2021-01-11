@@ -189,8 +189,9 @@ class MetadataWriter:
     @compression_mode.setter
     def compression_mode(self, m: Literal['', 'none', 'file', 'message']):
         if not ((m == '') or (m == 'none') or (m == 'file') or (m == 'message')):
-            raise ValueError(print_error("Compression format must either be 'none', 'file or 'message', "
-                                         "Got '{}'".format(m)))
+            raise ValueError(print_error(
+                                "Compression format must either be 'none', 'file or 'message', "
+                                "Got '{}'".format(m)))
         if m == 'none':
             translated = ''
         else:
