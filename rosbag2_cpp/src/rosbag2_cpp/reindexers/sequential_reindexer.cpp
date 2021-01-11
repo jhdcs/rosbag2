@@ -98,6 +98,7 @@ void SequentialReindexer::reset()
   }
 }
 
+
 bool SequentialReindexer::comp_rel_file(
   const rcpputils::fs::path & first_path, const rcpputils::fs::path & second_path)
 {
