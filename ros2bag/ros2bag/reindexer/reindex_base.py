@@ -29,7 +29,6 @@ from . import reindex_sqlite
 
 def reindex(uri: str,
             storage_id: str,
-            serialization_fmt: str,
             compression_fmt: str,
             compression_mode: str,
             _test_output_dir: Optional[str]) -> Optional[str]:

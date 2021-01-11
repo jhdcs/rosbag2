@@ -25,9 +25,9 @@ import sqlite3
 import sys
 from typing import List, Optional, TypedDict
 
-import bag_metadata
-
 from ros2bag.api import print_error
+
+from . import bag_metadata
 
 
 class TopicInfo(TypedDict):

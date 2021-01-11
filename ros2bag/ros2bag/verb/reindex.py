@@ -35,10 +35,6 @@ class ReindexVerb(VerbExtension):
             '-s', '--storage', default='sqlite3',
             help="storage identifier to be used, defaults to 'sqlite3'")
         parser.add_argument(
-            '-f', '--serialization-format', default='',
-            help='rmw serialization format in which the messages are saved, defaults to the'
-                 ' rmw currently in use')
-        parser.add_argument(
             '-c', '--compression-format', type=str, default='', choices=['zstd'],
             help='Specify the compression format/algorithm. Default is none.'
         )
@@ -63,25 +59,7 @@ class ReindexVerb(VerbExtension):
         reindex_base.reindex(
             uri=args.bag_file,
             storage_id=args.storage_id,
-            serialization_fmt=args.serialization_fmt,
             compression_fmt=args.compression_fmt,
             compression_mode=args.compression_mode,
             _test_output_dir=args._test_output_dir
         )
-
-        # # NOTE(hidmic): in merged install workspaces on Windows, Python entrypoint lookups
-        # #               combined with constrained environments (as imposed by colcon test)
-        # #               may result in DLL loading failures when attempting to import a C
-        # #               extension. Therefore, do not import rosbag2_transport at the module
-        # #               level but on demand, right before first use.
-        # from rosbag2_transport import rosbag2_transport_py
-
-        # rosbag2_transport_py.reindex(
-        #     uri=uri,
-        #     storage_id=args.storage,
-        #     serialization_format=args.serialization_format,
-        #     compression_format=args.compression_format
-        # )
-
-        # if os.path.isdir(uri) and not os.listdir(uri):
-        #     os.rmdir(uri)
