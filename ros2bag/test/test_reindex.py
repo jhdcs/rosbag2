@@ -221,10 +221,10 @@ class TestRos2BagReindexMultiFile(unittest.TestCase):
                 yield pkg_command
         cls.launch_bag_command = launch_bag_command
 
-    # @classmethod
-    # def tearDown(cls) -> None:
-    #     metadata_file = RESOURCES_PATH / 'multiple_files' / 'metadata.yaml'
-    #     metadata_file.unlink(True)
+    @classmethod
+    def tearDown(cls) -> None:
+        metadata_file = RESOURCES_PATH / 'multiple_files' / 'metadata.yaml'
+        metadata_file.unlink(True)
 
     def test_multiple_files(self):
         bag_path = RESOURCES_PATH / 'multiple_files'
