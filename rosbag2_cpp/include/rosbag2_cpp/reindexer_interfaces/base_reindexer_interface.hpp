@@ -1,3 +1,6 @@
+// DISTRIBUTION A. Approved for public release; distribution unlimited.
+// OPSEC #4584.
+//
 // Copyright (c) 2020 DCS Corporation
 // All Rights Reserved
 //
@@ -8,9 +11,6 @@
 //    Caution-http://www.apache.org/licenses/LICENSE-2.0
 //
 // The software/firmware is provided to you on an As-Is basis.
-//
-// DISTRIBUTION A. Approved for public release; distribution unlimited.
-// OPSEC #4584.
 //
 // Delivered to the U.S. Government with Unlimited Rights, as defined in DFARS
 // Part 252.227-7013 or 7014 (Feb 2014).
