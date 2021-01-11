@@ -21,12 +21,13 @@
 # This notice must appear in all copies of this file and its derivatives.
 
 import pathlib
+import sqlite3
 import sys
 from typing import Dict, List, Union
 
-from . import bag_metadata
 from ros2bag.api import print_error
-import sqlite3
+
+from . import bag_metadata
 
 
 def get_metadata(db_file: pathlib.Path) -> Dict[str, Union[List[Dict[str, Union[str, int]]], int]]:
@@ -34,12 +35,12 @@ def get_metadata(db_file: pathlib.Path) -> Dict[str, Union[List[Dict[str, Union[
     c = db_con.cursor()
 
     # Query the metadata
-    c.execute('SELECT name, type, serialization_format, COUNT(messages.id), MIN(messages.timestamp), '
-              'MAX(messages.timestamp), offered_qos_profiles '
+    c.execute('SELECT name, type, serialization_format, COUNT(messages.id), '
+              'MIN(messages.timestamp), MAX(messages.timestamp), offered_qos_profiles '
               'FROM messages JOIN topics on topics.id = messages.topic_id '
               'GROUP BY topics.name;')
 
-    # Set up initial values    
+    # Set up initial values
     topics: List[Dict[str, Union[str, int]]] = []
     min_time: int = sys.maxsize
     max_time: int = 0
@@ -63,7 +64,8 @@ def reindex(uri: str, serialization_fmt: str, compression_fmt: str, compression_
     """Reconstruct a metadata.yaml file for an sqlite3-based rosbag."""
     uri_dir = pathlib.Path(uri)
     if not uri_dir.is_dir():
-        raise ValueError(print_error('Reindex needs a bag directory. Was given path "{}"'.format(uri)))
+        raise ValueError(
+            print_error('Reindex needs a bag directory. Was given path "{}"'.format(uri)))
 
     # Get the relative paths
     rel_file_paths = [f for f in uri_dir.iterdir() if f.suffix == '.db3']
@@ -75,4 +77,3 @@ def reindex(uri: str, serialization_fmt: str, compression_fmt: str, compression_
     metadata.add_multiple_rel_file_paths(rel_file_paths)
     metadata.compression_format = compression_fmt
     metadata.compression_mode = compression_mode
-
