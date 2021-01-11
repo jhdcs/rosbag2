@@ -22,7 +22,7 @@
 
 import os
 
-from ros2bag.api import check_path_exists
+from ros2bag.api import check_path_exists, print_error
 from ros2bag.verb import VerbExtension
 from ros2bag.reindexer import reindex_base
 
@@ -57,6 +57,10 @@ class ReindexVerb(VerbExtension):
         self._subparser = parser
 
     def main(self, *, args):  # noqa: D102
+
+        if args.compression_fmt and args.compression_mode == 'none':
+            return print_error('Invalid choice: Cannot specify compression format '
+                               'without a compression mode.')
 
         reindex_base.reindex(
             uri=args.bag_file,
