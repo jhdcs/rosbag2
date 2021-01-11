@@ -52,7 +52,7 @@ def get_metadata_from_connection(db_con: sqlite3.Connection) -> DBMetadata:
                        'GROUP BY topics.name;')
 
     rows = c.fetchall()
-
+    
     # Set up initial values
     topics: List[TopicInfo] = []
     min_time: int = sys.maxsize
@@ -109,8 +109,10 @@ def get_metadata(db_file: pathlib.Path,
     # Handle compression
     if compression_fmt != '':
         if compression_mode == 'message':
-            raise ValueError(print_error(
-                                'Message-compressed bags currently unsupported by reindex'))
+            # Message-compressed files only compress the data of a message - not its metadata
+            # So this will work exactly the same as a regular file
+            with sqlite3.connect(db_file) as db_con:
+                return get_metadata_from_connection(db_con)
         elif compression_mode != 'file':
             raise ValueError(print_error(
                                 'Invalid compression mode for compressed file. '
@@ -134,7 +136,7 @@ def reindex(
             print_error('Reindex needs a bag directory. Was given path "{}"'.format(uri)))
 
     # Get the relative paths
-    if compression_fmt == 'zstd':
+    if (compression_fmt == 'zstd') and (compression_mode == 'file'):
         rel_file_paths = sorted(f for f in uri_dir.iterdir() if f.suffix == '.zstd')
     else:
         rel_file_paths = sorted(f for f in uri_dir.iterdir() if f.suffix == '.db3')
