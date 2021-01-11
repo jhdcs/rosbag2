@@ -26,8 +26,12 @@ from ros2bag.api import print_error
 
 from . import reindex_sqlite
 
-def reindex(uri: str, storage_id: str, serialization_fmt: str, compression_fmt: str) -> Optional[str]:
+
+def reindex(uri: str,
+            storage_id: str,
+            serialization_fmt: str,
+            compression_fmt: str) -> Optional[str]:
     if storage_id == 'sqlite3':
         reindex_sqlite.reindex(uri, serialization_fmt, compression_fmt)
     else:
-        return print_error("Reindex for storage type {} not implemented".format(storage_id))
+        return print_error('Reindex for storage type {} not implemented'.format(storage_id))

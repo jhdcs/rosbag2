@@ -20,6 +20,7 @@
 #
 # This notice must appear in all copies of this file and its derivatives.
 
+
 def reindex(uri: str, serialization_fmt: str, compression_fmt: str) -> None:
-    """Attempts to reconstruct a metadata.yaml file for an sqlite3-based rosbag"""
+    """Reconstructs a metadata.yaml file for an sqlite3-based rosbag."""
     pass
