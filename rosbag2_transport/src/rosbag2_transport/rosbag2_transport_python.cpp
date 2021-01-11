@@ -82,6 +82,18 @@ std::unordered_map<std::string, rclcpp::QoS> PyObject_AsTopicQoSMap(PyObject * o
 }  // namespace
 
 static PyObject *
+rosbag2_transport_write_metadata(PyObject * Py_UNUSED(self), PyObject * args, PyObject * kwargs)
+{
+  rosbag2_storage::BagMetadata metadata{};
+  rosbag2_storage::TopicInformation topic_info{};
+
+  static const char * kwlist[] = {
+    "uri"
+  };
+
+};
+
+static PyObject *
 rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject * kwargs)
 {
   rosbag2_storage::StorageOptions storage_options{};

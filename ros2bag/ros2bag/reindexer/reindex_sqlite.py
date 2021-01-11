@@ -74,38 +74,9 @@ def get_metadata_from_connection(db_con: sqlite3.Connection) -> DBMetadata:
     return {'topic_metadata': topics, 'min_time': min_time, 'max_time': max_time}
 
 
-def get_metadata_file_compressed(db_file: pathlib.Path) -> DBMetadata:
-    try:
-        import zstandard as zstd
-    except ImportError:
-        raise ImportError(print_error(
-                            'The "zstandard" library is required to reindex compressed bags. '
-                            'Install using "pip3 install zstandard" and try again.'))
-
-    # Decompress database
-    compressed_db_bytes = db_file.read_bytes()
-    dctx = zstd.ZstdDecompressor()
-    decompressed_db = dctx.decompress(compressed_db_bytes)
-
-    # Temporarily save decompressed database to disk
-    decompressed_path = pathlib.Path(db_file.parent) / db_file.stem
-    decompressed_path.write_bytes(decompressed_db)
-    with sqlite3.connect(decompressed_path) as db_con:
-        return_val = get_metadata_from_connection(db_con)
-
-    # Delete temporary database, shm, and wal files
-    decompressed_path.unlink()
-    decompressed_shm = pathlib.Path(decompressed_path.as_posix() + '-shm')
-    decompressed_shm.unlink(True)
-    decompressed_wal = pathlib.Path(decompressed_path.as_posix() + '-wal')
-    decompressed_wal.unlink(True)
-
-    return return_val
-
-
 def get_metadata(db_file: pathlib.Path,
-                 compression_fmt: Literal['', 'zstd'],
-                 compression_mode: Literal['', 'none', 'file', 'message']) -> DBMetadata:
+                 compression_fmt: Optional[str],
+                 compression_mode: Optional[str]) -> DBMetadata:
     # Handle compression
     if compression_fmt != '':
         if compression_mode == 'message':
@@ -113,12 +84,10 @@ def get_metadata(db_file: pathlib.Path,
             # So this will work exactly the same as a regular file
             with sqlite3.connect(db_file) as db_con:
                 return get_metadata_from_connection(db_con)
-        elif compression_mode != 'file':
+        else:
             raise ValueError(print_error(
                                 'Invalid compression mode for compressed file. '
-                                'Expected "file" or "message", got {}'.format(compression_mode)))
-        else:
-            return get_metadata_file_compressed(db_file)
+                                'Expected "message", got {}'.format(compression_mode)))
     else:
         with sqlite3.connect(db_file) as db_con:
             return get_metadata_from_connection(db_con)
@@ -126,20 +95,22 @@ def get_metadata(db_file: pathlib.Path,
 
 def reindex(
         uri: str,
-        compression_fmt: Literal['', 'zstd'],
-        compression_mode: Literal['', 'none', 'file', 'message'],
+        compression_fmt: Optional[str],
+        compression_mode: Optional[str],
         _test_output_dir: Optional[str]) -> None:
     """Reconstruct a metadata.yaml file for an sqlite3-based rosbag."""
+    # Disallow working with compressed formats
+    if compression_fmt or (compression_mode and compression_mode != 'message'):
+        raise ValueError(
+            print_error('Reindex does not currently support file-compressed bags'))
+
     uri_dir = pathlib.Path(uri)
     if not uri_dir.is_dir():
         raise ValueError(
             print_error('Reindex needs a bag directory. Was given path "{}"'.format(uri)))
 
     # Get the relative paths
-    if (compression_fmt == 'zstd') and (compression_mode == 'file'):
-        rel_file_paths = sorted(f for f in uri_dir.iterdir() if f.suffix == '.zstd')
-    else:
-        rel_file_paths = sorted(f for f in uri_dir.iterdir() if f.suffix == '.db3')
+    rel_file_paths = sorted(f for f in uri_dir.iterdir() if f.suffix == '.db3')
 
     # Start recording metadata
     metadata = bag_metadata.MetadataWriter()

@@ -21,7 +21,7 @@
 # This notice must appear in all copies of this file and its derivatives.
 
 import pathlib
-from typing import Dict, List, Literal, TypedDict, Union
+from typing import Dict, List, Optional, TypedDict, Union
 
 from ros2bag.api import print_error
 import yaml
@@ -72,8 +72,8 @@ class MetadataWriter:
         self._starting_time: int = 0
         self._message_count: int = 0
         self._topics: List[TopicMetadata] = []
-        self._compression_format: Literal['', 'zstd'] = ''
-        self._compression_mode: Literal['', 'FILE', 'MESSAGE'] = ''
+        self._compression_format: Optional[str] = ''
+        self._compression_mode: Optional[str] = ''
 
     @property
     def version(self) -> int:
@@ -183,22 +183,25 @@ class MetadataWriter:
             topic_to_edit['tm_message_count'] += topic_count
 
     @property
-    def compression_format(self) -> Literal['', 'zstd']:
+    def compression_format(self) -> Optional[str]:
         return self._compression_format
 
     @compression_format.setter
-    def compression_format(self, f: Literal['', 'zstd']):
+    def compression_format(self, f: Optional[str]):
         if not ((f == '') or (f == 'zstd')):
             raise ValueError(print_error("Compression format must either be '' or 'zstd', "
                                          "Got '{}'".format(f)))
         self._compression_format = f
 
     @property
-    def compression_mode(self) -> str:
-        return self._compression_mode
+    def compression_mode(self) -> Optional[str]:
+        if self._compression_mode:
+            return self._compression_mode
+        else:
+            return ''
 
     @compression_mode.setter
-    def compression_mode(self, m: Literal['', 'none', 'file', 'message']):
+    def compression_mode(self, m: Optional[str]):
         if not ((m == '') or (m == 'none') or (m == 'file') or (m == 'message')):
             raise ValueError(print_error(
                                 "Compression format must either be 'none', 'file or 'message', "
