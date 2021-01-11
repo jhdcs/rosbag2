@@ -36,7 +36,7 @@ class TopicBlock(TypedDict):
 
 def block_as_dict(topic_block: TopicBlock) -> Dict[str, str]:
     return {
-        'topic': topic_block['block_name'],
+        'name': topic_block['block_name'],
         'type': topic_block['block_type'],
         'serialization_format': topic_block['block_ser'],
         'offered_qos_profiles': topic_block['block_qos']
@@ -146,6 +146,9 @@ class MetadataWriter:
             raise ValueError(print_error('Message count cannot be negative. Got {}'.format(x)))
         self._message_count = x
 
+    def calculate_message_count(self):
+        self.message_count = sum(d['tm_message_count'] for d in self._topics)
+
     @property
     def topics(self) -> List[TopicMetadata]:
         return self._topics
@@ -169,7 +172,15 @@ class MetadataWriter:
             TopicMetadata(
                 tm_block=topic_block,
                 tm_message_count=topic_count)
-        self._topics.append(new_topic)
+
+        # Check to see if this topic already exists
+        if not any(d['tm_block']['block_name'] == topic_name for d in self._topics):
+            self._topics.append(new_topic)
+        else:
+            # It exists. Just add the number of new messages
+            topic_to_edit = next(d for d in self._topics
+                                 if d['tm_block']['block_name'] == topic_name)
+            topic_to_edit['tm_message_count'] += topic_count
 
     @property
     def compression_format(self) -> Literal['', 'zstd']:

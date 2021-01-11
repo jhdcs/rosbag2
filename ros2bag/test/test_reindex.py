@@ -182,28 +182,27 @@ def check_compression_mode(target_base_node: Any, test_base_node: Any) -> None:
 
 
 def compare_metadata_files(target_file: Path, test_file: Path):
-    target_yaml = yaml.safe_load(target_file.as_posix())
-    generated_yaml = yaml.safe_load(test_file.as_posix())
+    target_yaml = yaml.safe_load(target_file.open())
+    generated_yaml = yaml.safe_load(test_file.open())
 
     # Check that base node exists
-    print(target_yaml)
-    print(generated_yaml)
-    target_base_node = target_yaml.get('ros2_bagfile_information')
-    test_base_node = generated_yaml.get('ros2_bagfile_information')
+    target_base_node = target_yaml.get('rosbag2_bagfile_information')
+    test_base_node = generated_yaml.get('rosbag2_bagfile_information')
     assert test_base_node, print('Reindex was unable to generate base node')
 
     check_version(target_base_node, test_base_node)
     check_storage_identifier(target_base_node, test_base_node)
     check_relative_filepaths(target_base_node, test_base_node)
-    check_duration(target_base_node, test_base_node)
-    check_starting_time(target_base_node, test_base_node)
+    # MAY NOT BE ABLE TO GUARANTEE THIS #
+    # check_duration(target_base_node, test_base_node)
+    # check_starting_time(target_base_node, test_base_node)
     check_message_count(target_base_node, test_base_node)
     check_topics(target_base_node, test_base_node)
     check_compression_fmt(target_base_node, test_base_node)
     check_compression_mode(target_base_node, test_base_node)
 
 
-class TestRos2BagReindex(unittest.TestCase):
+class TestRos2BagReindexMultiFile(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls, launch_service, proc_info, proc_output):
@@ -222,12 +221,15 @@ class TestRos2BagReindex(unittest.TestCase):
                 yield pkg_command
         cls.launch_bag_command = launch_bag_command
 
+    # @classmethod
+    # def tearDown(cls) -> None:
+    #     metadata_file = RESOURCES_PATH / 'multiple_files' / 'metadata.yaml'
+    #     metadata_file.unlink(True)
+
     def test_multiple_files(self):
         bag_path = RESOURCES_PATH / 'multiple_files'
         metadata_file = bag_path / 'metadata.yaml'
         target_file = bag_path / 'multiple_files_target.yaml'
-        # Make sure no previous metadata file exists
-        metadata_file.unlink(True)
 
         arguments = ['reindex', bag_path.as_posix()]
         with self.launch_bag_command(arguments=arguments) as bag_command:
@@ -236,15 +238,35 @@ class TestRos2BagReindex(unittest.TestCase):
         # Metadata.yaml file should be created at this point
         compare_metadata_files(target_file, metadata_file)
 
-        # Clean up
-        metadata_file.unlink()
+
+class TestRos2BagReindexCompression(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls, launch_service, proc_info, proc_output):
+        @contextlib.contextmanager
+        def launch_bag_command(self, arguments, **kwargs):
+            pkg_command_action = ExecuteProcess(
+                cmd=['ros2', 'bag', *arguments],
+                additional_env={'PYTHONUNBUFFERED': '1'},
+                name='ros2bag-cli',
+                output='screen',
+                **kwargs
+            )
+            with launch_testing.tools.launch_process(
+                    launch_service, pkg_command_action, proc_info, proc_output
+            ) as pkg_command:
+                yield pkg_command
+        cls.launch_bag_command = launch_bag_command
+
+    @classmethod
+    def tearDown(cls) -> None:
+        metadata_file = RESOURCES_PATH / 'file_compression' / 'metadata.yaml'
+        metadata_file.unlink(True)
 
     def test_compressed(self):
         bag_path = RESOURCES_PATH / 'file_compression'
         metadata_file = bag_path / 'metadata.yaml'
         target_file = bag_path / 'file_compression_target.yaml'
-        # Make sure no previous metadata file exists
-        metadata_file.unlink(True)
 
         arguments = ['reindex', bag_path.as_posix(),
                      '--compression-format', 'zstd',
@@ -254,6 +276,3 @@ class TestRos2BagReindex(unittest.TestCase):
 
         # Metadata.yaml file should be created at this point
         compare_metadata_files(target_file, metadata_file)
-
-        # Clean up
-        metadata_file.unlink()

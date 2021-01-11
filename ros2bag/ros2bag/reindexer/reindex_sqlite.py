@@ -45,32 +45,16 @@ class DBMetadata(TypedDict):
 
 
 def get_metadata(db_file: pathlib.Path) -> DBMetadata:
-    print('db path: {}'.format(db_file))
     db_con = sqlite3.connect(db_file)
-    c = db_con.cursor()
-
-    # Find tables
-    c.execute("SELECT name FROM sqlite_master WHERE type='table';")
-    print('Tables: {}'.format(c.fetchall()))
-
-    # # Find key names
-    c.execute('SELECT * FROM messages;')
-    print('Messages: {}'.format(c.fetchall()))
-
-    c.execute('SELECT * FROM topics;')
-    print('Topics: {}'.format(c.fetchall()))
+    # c = db_con.cursor()
 
     # Query the metadata
     c = db_con.execute('SELECT name, type, serialization_format, COUNT(messages.id), '
-              'MIN(messages.timestamp), MAX(messages.timestamp), offered_qos_profiles '
-              'FROM messages JOIN topics on topics.id = messages.topic_id '
-              'GROUP BY topics.name;')
+                       'MIN(messages.timestamp), MAX(messages.timestamp), offered_qos_profiles '
+                       'FROM messages JOIN topics on topics.id = messages.topic_id '
+                       'GROUP BY topics.name;')
 
     rows = c.fetchall()
-    # "SELECT name, type, serialization_format, COUNT(messages.id), MIN(messages.timestamp), "
-    # "MAX(messages.timestamp), offered_qos_profiles "
-    # "FROM messages JOIN topics on topics.id = messages.topic_id "
-    # "GROUP BY topics.name;");
 
     # Set up initial values
     # topics: List[Dict[str, Union[str, int]]] = []
@@ -78,11 +62,8 @@ def get_metadata(db_file: pathlib.Path) -> DBMetadata:
     min_time: int = sys.maxsize
     max_time: int = 0
 
-    num_rows = 0
     # Aggregate metadata
     for row in rows:
-        num_rows += 1
-        print('Row info: {}'.format(row))
         topics.append(TopicInfo(
             topic_name=row[0],
             topic_type=row[1],
@@ -93,8 +74,6 @@ def get_metadata(db_file: pathlib.Path) -> DBMetadata:
             min_time = row[4]
         if row[5] > max_time:
             max_time = row[5]
-
-    print('num_rows: {}'.format(num_rows))
 
     return {'topic_metadata': topics, 'min_time': min_time, 'max_time': max_time}
 
@@ -111,7 +90,7 @@ def reindex(
             print_error('Reindex needs a bag directory. Was given path "{}"'.format(uri)))
 
     # Get the relative paths
-    rel_file_paths = sorted([f for f in uri_dir.iterdir() if f.suffix == '.db3'])
+    rel_file_paths = sorted(f for f in uri_dir.iterdir() if f.suffix == '.db3')
 
     # Start recording metadata
     metadata = bag_metadata.MetadataWriter()
@@ -134,10 +113,9 @@ def reindex(
         if db_metadata['max_time'] > rolling_max_time:
             rolling_max_time = db_metadata['max_time']
 
-    print('Min time: {}'.format(rolling_min_time))
-    print('Max time: {}'.format(rolling_max_time))
     metadata.starting_time = rolling_min_time
     metadata.duration = rolling_max_time - rolling_min_time
+    metadata.calculate_message_count()
 
     if _test_output_dir is not None:
         out_dir = pathlib.Path(_test_output_dir)
